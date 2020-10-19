@@ -142,6 +142,7 @@ The Azure Functions created in this exercise will act as a switching proxy or th
     using System.Threading.Tasks;
     using Microsoft.Azure.WebJobs;
     using Microsoft.Azure.WebJobs.Extensions.Http;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Azure.WebJobs.Host;
 
     namespace PartsUnlimited.AzureFunction
@@ -149,10 +150,10 @@ The Azure Functions created in this exercise will act as a switching proxy or th
     public static class Function1
     {
         [FunctionName("HttpTrigger1")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
+        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req, TraceWriter log)
         {
-            var userIdKey = req.GetQueryNameValuePairs().FirstOrDefault(q => string.Equals(q.Key, "UserId", StringComparison.OrdinalIgnoreCase));
-            var userId = string.IsNullOrEmpty(userIdKey.Value) ? int.MaxValue : Convert.ToInt64(userIdKey.Value);
+            var userIdKey = req.Query["UserID"].ToString();
+            var userId = string.IsNullOrEmpty(userIdKey) ? int.MaxValue : Convert.ToInt64(userIdKey);
             var url = $"https://<<YourAPIAppServiceUrl>>/api/{(userId > 10 ? "v1" : "v2")}/specials/GetSpecialsByUserId?id={userId}";
             using (HttpClient httpClient = new HttpClient())
             {
